@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
+import 'package:flutter_maps/presentation/screens/otp_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
   String? phoneNumber;
+  final GlobalKey _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -11,9 +13,9 @@ class LoginScreen extends StatelessWidget {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Form(
-            key: UniqueKey(),
+            key: _formKey,
             child: Container(
-              margin: EdgeInsets.symmetric(
+              margin: const EdgeInsets.symmetric(
                 horizontal: 32,
                 vertical: 88,
               ),
@@ -21,17 +23,19 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
                         'What is your phone number',
                         style: TextStyle(
+                          fontSize: 25,
                           color: Colors.black54,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 30),
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
                         child: const Text(
                           'please enter your phone number to verify your account',
                           style: TextStyle(
@@ -40,9 +44,10 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 10),
                       _buildFormField(),
-                      SizedBox(height: 80),
-                      _buildNextButton(),
+                      const SizedBox(height: 80),
+                      _buildNextButton(context),
                     ],
                   ),
                 ],
@@ -72,7 +77,7 @@ class LoginScreen extends StatelessWidget {
             ),
             child: Text(
               '${_generateCountryFlag()} +20',
-              style: TextStyle(fontSize: 18, letterSpacing: 2),
+              style: const TextStyle(fontSize: 18, letterSpacing: 2,),
             ),
           ),
         ),
@@ -109,8 +114,8 @@ class LoginScreen extends StatelessWidget {
                   return null;
                 }
               },
-              onSaved: (newValue) {
-                phoneNumber = newValue;
+              onChanged: (value) {
+                phoneNumber = value ;
               },
             ),
           ),
@@ -121,25 +126,34 @@ class LoginScreen extends StatelessWidget {
 
   String _generateCountryFlag() {
     String countryCode = 'eg';
-    String flag = countryCode.toUpperCase().replaceAllMapped(RegExp(r'[A-Z]'),
-        (match) => String.fromCharCode(match.group(0)!.codeUnitAt(0) + 127397));
+    String flag = countryCode
+        .toUpperCase()
+        .replaceAllMapped(RegExp(r'[A-Z]'),
+        (match) => String
+            .fromCharCode(match.group(0)!
+            .codeUnitAt(0) + 127397));
     return flag;
   }
 
-  Widget _buildNextButton() {
+  Widget _buildNextButton(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom
-          (
+        style: ElevatedButton.styleFrom(
           minimumSize: const Size(110, 50),
-
           backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpScreen(phoneNumber: phoneNumber),
+              ),
+              (route) => false);
+        },
         child: const Text(
           'Next',
           style: TextStyle(
