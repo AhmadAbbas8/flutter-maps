@@ -1,61 +1,140 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
+import 'package:flutter_maps/business_logic/phone_auth/phone_auth_state.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
 import 'package:flutter_maps/presentation/screens/otp_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
   String? phoneNumber;
-  final GlobalKey _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Container(
-              margin: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 88,
+      child: BlocConsumer<PhoneAuthCubit, PhoneAuthState>(
+        listener: (context, state) {
+          if (state is PhoneAuthLoad) {
+            showProgresIndicator(context);
+          }
+          if (state is PhoneAuthSubmited) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpScreen(phoneNumber: phoneNumber),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
+            );
+          }
+          if (state is PhoneAuthError) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.error,
+                ),
+                backgroundColor: Colors.black,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 88,
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'What is your phone number',
-                        style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        child: const Text(
-                          'please enter your phone number to verify your account',
-                          style: TextStyle(
-                            color: Colors.black54,
-                            fontSize: 18,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'What is your phone number',
+                            style: TextStyle(
+                              fontSize: 25,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 30),
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            child: const Text(
+                              'please enter your phone number to verify your account',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildFormField(),
+                          const SizedBox(height: 80),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(110, 50),
+                                backgroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                showProgresIndicator(context);
+                                if (_formKey.currentState!.validate()) {
+                                  PhoneAuthCubit.get(context)
+                                      .submitPhoneNumber(phoneNumber!);
+                                } else {
+                                  Navigator.pop(context);
+                                }
+                              },
+                              child: const Text(
+                                'Next',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      _buildFormField(),
-                      const SizedBox(height: 80),
-                      _buildNextButton(context),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          );
+        },
+      ),
+    );
+  }
+
+  void showProgresIndicator(BuildContext context) {
+    AlertDialog alertDialog = AlertDialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      content: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
         ),
       ),
+    );
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: MyColors.myWhite.withOpacity(0),
+      builder: (context) {
+        return alertDialog;
+      },
     );
   }
 
@@ -77,7 +156,10 @@ class LoginScreen extends StatelessWidget {
             ),
             child: Text(
               '${_generateCountryFlag()} +20',
-              style: const TextStyle(fontSize: 18, letterSpacing: 2,),
+              style: const TextStyle(
+                fontSize: 18,
+                letterSpacing: 2,
+              ),
             ),
           ),
         ),
@@ -115,7 +197,7 @@ class LoginScreen extends StatelessWidget {
                 }
               },
               onChanged: (value) {
-                phoneNumber = value ;
+                phoneNumber = value;
               },
             ),
           ),
@@ -126,42 +208,8 @@ class LoginScreen extends StatelessWidget {
 
   String _generateCountryFlag() {
     String countryCode = 'eg';
-    String flag = countryCode
-        .toUpperCase()
-        .replaceAllMapped(RegExp(r'[A-Z]'),
-        (match) => String
-            .fromCharCode(match.group(0)!
-            .codeUnitAt(0) + 127397));
+    String flag = countryCode.toUpperCase().replaceAllMapped(RegExp(r'[A-Z]'),
+        (match) => String.fromCharCode(match.group(0)!.codeUnitAt(0) + 127397));
     return flag;
-  }
-
-  Widget _buildNextButton(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(110, 50),
-          backgroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        onPressed: () {
-          Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OtpScreen(phoneNumber: phoneNumber),
-              ),
-              (route) => false);
-        },
-        child: const Text(
-          'Next',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
   }
 }

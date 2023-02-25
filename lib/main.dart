@@ -1,21 +1,44 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
 import 'package:flutter_maps/presentation/screens/login_screen.dart';
+import 'package:flutter_maps/presentation/screens/map_screen.dart';
+
+import 'bloc_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
- await await Firebase.initializeApp();
+  await await Firebase.initializeApp();
+  FirebaseAuth.instance.authStateChanges().listen((event) {
+    if (event == null) {
+      initalScreen = LoginScreen();
+    } else {
+      initalScreen = MapScreen();
+    }
+  });
+  Bloc.observer = MyBlocObserver();
   runApp(const MyApp());
 }
+
+late Widget initalScreen;
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => PhoneAuthCubit(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: initalScreen,
+      ),
     );
   }
 }

@@ -1,67 +1,123 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
+import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
+import 'package:flutter_maps/presentation/screens/map_screen.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+
+import '../../business_logic/phone_auth/phone_auth_state.dart';
 
 class OtpScreen extends StatelessWidget {
   OtpScreen({Key? key, this.phoneNumber}) : super(key: key);
   final String? phoneNumber;
+  late String otpCode;
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        backgroundColor: MyColors.myWhite,
-        body: Container(
-          margin: EdgeInsets.symmetric(
-            vertical: 88,
-            horizontal: 33,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const Text(
-                  'Verify your phone number',
-                  style: TextStyle(
-                    fontSize: 25,
-                    color: MyColors.myBlack,
-                    fontWeight: FontWeight.bold,
-                  ),
+      child: BlocConsumer<PhoneAuthCubit, PhoneAuthState>(
+        listener: (context, state) {
+          if (state is PhoneAuthLoad) {
+            showProgresIndicator(context);
+          }
+          if (state is PhoneAuthVerified) {
+            Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapScreen(),
                 ),
-                const SizedBox(height: 30),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  child: RichText(
-                    text: TextSpan(
-                      text: 'Enter your 6 digits code number sent to ',
+                (route) => false);
+          }
+          if (state is PhoneAuthError) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.error,
+                ),
+                backgroundColor: Colors.black,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: MyColors.myWhite,
+            body: Container(
+              margin: const EdgeInsets.symmetric(
+                vertical: 88,
+                horizontal: 33,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const Text(
+                      'Verify your phone number',
                       style: TextStyle(
+                        fontSize: 25,
                         color: MyColors.myBlack,
-                        fontSize: 16,
-                        height: 1.4,
+                        fontWeight: FontWeight.bold,
                       ),
-                      children: [
-                        TextSpan(
-                          text: '${phoneNumber}',
-                          style: TextStyle(
-                            color: MyColors.myBlue,
-                          ),
-                        )
-                      ],
                     ),
-                  ),
+                    const SizedBox(height: 30),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      child: RichText(
+                        text: TextSpan(
+                          text: 'Enter your 6 digits code number sent to ',
+                          style: TextStyle(
+                            color: MyColors.myBlack,
+                            fontSize: 16,
+                            height: 1.4,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: '${phoneNumber}',
+                              style: TextStyle(
+                                color: MyColors.myBlue,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPinCodeFields(context),
+                    const SizedBox(height: 60),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(110, 50),
+                          backgroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          showProgresIndicator(context);
+                          PhoneAuthCubit.get(context).submitOTP(otpCode);
+                        },
+                        child: const Text(
+                          'Verify',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                _buildPinCodeFields(context),
-                const SizedBox(height: 60),
-                _buildNextButton()
-
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
-
   Widget _buildPinCodeFields(BuildContext context) {
     return Container(
       child: PinCodeTextField(
@@ -91,6 +147,7 @@ class OtpScreen extends StatelessWidget {
         // errorAnimationController: errorController,
         // controller: textEditingController,
         onCompleted: (code) {
+          otpCode = code;
           print("Completed");
         },
         onChanged: (value) {
@@ -100,27 +157,23 @@ class OtpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNextButton() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom
-          (
-          minimumSize: const Size(110, 50),
-          backgroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        onPressed: () {},
-        child: const Text(
-          'Verify',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
+  void showProgresIndicator(BuildContext context) {
+    AlertDialog alertDialog = AlertDialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      content: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
         ),
       ),
+    );
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: MyColors.myWhite.withOpacity(0),
+      builder: (context) {
+        return alertDialog;
+      },
     );
   }
 }
