@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_maps/business_logic/maps_logic/maps_cubit.dart';
 import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
+import 'package:flutter_maps/data/web_services/places_web_servises.dart';
 import 'package:flutter_maps/presentation/screens/login_screen.dart';
 import 'package:flutter_maps/presentation/screens/map_screen.dart';
 import 'bloc_observer.dart';
@@ -10,6 +12,7 @@ import 'bloc_observer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  PlacesWebServices.init();
   choseFirstPage();
   Bloc.observer = MyBlocObserver();
   runApp(const MyApp());
@@ -37,6 +40,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => PhoneAuthCubit(),
         ),
+        BlocProvider(create: (context) => MapsCubit(),)
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

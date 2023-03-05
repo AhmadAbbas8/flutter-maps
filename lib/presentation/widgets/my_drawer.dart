@@ -66,7 +66,7 @@ class MyDrawer extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (context) => LoginScreen(),
                       ),
-                      (route) => false,
+                          (route) => false,
                     );
                   },
                 );
@@ -107,12 +107,16 @@ class MyDrawer extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          'Ahmad Abbas',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
+          builder: (context, state) {
+            return Text(
+              PhoneAuthCubit.get(context).getLoggedInUser().phoneNumber!,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
         ),
         SizedBox(height: 5),
         Text(
