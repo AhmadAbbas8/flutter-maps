@@ -107,6 +107,11 @@ class MyDrawer extends StatelessWidget {
             ),
           ),
         ),
+        Text(
+          'Ahmad Abbas',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 5),
         BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
           builder: (context, state) {
             return Text(
@@ -118,11 +123,7 @@ class MyDrawer extends StatelessWidget {
             );
           },
         ),
-        SizedBox(height: 5),
-        Text(
-          '01029410206',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+
       ],
     );
   }

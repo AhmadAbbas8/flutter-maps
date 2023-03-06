@@ -28,3 +28,16 @@ class PlacesLocationLoadedError extends MapsState{
 
   PlacesLocationLoadedError(this.error);
 }
+
+
+class GetPlacesDirectionsLoading extends MapsState{}
+class GetPlacesDirectionsSuccess extends MapsState{
+ final PlaceDirections readyDirection;
+  GetPlacesDirectionsSuccess(this.readyDirection);
+
+}
+class GetPlacesDirectionsError extends MapsState{
+  final String error;
+
+  GetPlacesDirectionsError(this.error);
+}

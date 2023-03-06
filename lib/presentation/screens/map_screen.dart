@@ -7,12 +7,14 @@ import 'package:flutter_maps/data/models/place_model.dart';
 import 'package:flutter_maps/data/models/place_suggestions%20_model.dart';
 import 'package:flutter_maps/helper/location_helper.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
+import 'package:flutter_maps/presentation/widgets/distance_and_time.dart';
 import 'package:flutter_maps/presentation/widgets/my_drawer.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../data/models/place_directions.dart';
 import '../widgets/place_item.dart';
 
 class MapScreen extends StatefulWidget {
@@ -27,7 +29,7 @@ class _MapScreenState extends State<MapScreen> {
   late List<PlaceSuggestionsModel> places;
 
   FloatingSearchBarController _floatingSearchBarController =
-      FloatingSearchBarController();
+  FloatingSearchBarController();
   static final CameraPosition _myCurrentLocation = CameraPosition(
     bearing: 0.0,
     target: LatLng(position!.latitude, position!.longitude),
@@ -42,6 +44,15 @@ class _MapScreenState extends State<MapScreen> {
   late Marker searchedPlaceMarker;
   late Marker currentLocationMarker;
   late CameraPosition goToSearchedForPlace;
+
+  // these variables for getDirections
+  PlaceDirections? placeDirections;
+  var progressIndicator = false;
+   List<LatLng>? polylinePoints;
+  var isSearchedPlaceMarkerClicked = false;
+  var isTimeAndDistanceVisible = false;
+  late String time;
+  late String distance;
 
   void buildCameraNewPosition() {
     goToSearchedForPlace = CameraPosition(
@@ -88,13 +99,18 @@ class _MapScreenState extends State<MapScreen> {
                 ConditionalBuilder(
                   condition: position != null,
                   builder: (context) => buildMap(),
-                  fallback: (context) => const Center(
+                  fallback: (context) =>
+                  const Center(
                     child: CircularProgressIndicator(
                       color: MyColors.myBlue,
                     ),
                   ),
                 ),
                 buildFloatingSearchBar(),
+                isSearchedPlaceMarkerClicked ? DistanceAndTime(
+                  isTimeAndDistanceVisiable: isTimeAndDistanceVisible,
+                  placeDirections: placeDirections,
+                ):Container(),
               ],
             ),
           ),
@@ -117,7 +133,9 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget buildFloatingSearchBar() {
     final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
+        MediaQuery
+            .of(context)
+            .orientation == Orientation.portrait;
 
     return BlocBuilder<MapsCubit, MapsState>(
       builder: (context, state) {
@@ -125,6 +143,7 @@ class _MapScreenState extends State<MapScreen> {
           controller: _floatingSearchBarController,
           hint: 'Search...',
           elevation: 6,
+          progress: progressIndicator,
           hintStyle: TextStyle(fontSize: 18),
           queryStyle: TextStyle(fontSize: 18),
           border: BorderSide(style: BorderStyle.none),
@@ -143,7 +162,11 @@ class _MapScreenState extends State<MapScreen> {
           onQueryChanged: (query) {
             getSuggestions(query);
           },
-          onFocusChanged: (isFocused) {},
+          onFocusChanged: (isFocused) {
+            setState(() {
+              isTimeAndDistanceVisible = false;
+            });
+          },
           transition: CircularFloatingSearchBarTransition(),
           actions: [
             FloatingSearchBarAction(
@@ -177,16 +200,24 @@ class _MapScreenState extends State<MapScreen> {
                       )
                     else
                       ListView.builder(
-                        itemCount: MapsCubit.get(context).suggestions.length,
+                        itemCount: MapsCubit
+                            .get(context)
+                            .suggestions
+                            .length,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
                           return InkWell(
                             onTap: () async {
                               placeSuggestion =
-                                  MapsCubit.get(context).suggestions[index];
+                              MapsCubit
+                                  .get(context)
+                                  .suggestions[index];
                               _floatingSearchBarController.close();
                               getSelectedPlacedLocation();
-                              // TODO
+                              polylinePoints!.clear();
+                             setState(() {
+                               markers.clear();
+                             });
                             },
                             child: Container(
                               width: double.infinity,
@@ -215,7 +246,10 @@ class _MapScreenState extends State<MapScreen> {
                                       text: TextSpan(children: [
                                         TextSpan(
                                           text:
-                                              '${MapsCubit.get(context).suggestions[index].description.split(',')[0]}\n',
+                                          '${MapsCubit
+                                              .get(context)
+                                              .suggestions[index].description
+                                              .split(',')[0]}\n',
                                           style: TextStyle(
                                             color: MyColors.myBlack,
                                             fontSize: 18,
@@ -223,15 +257,17 @@ class _MapScreenState extends State<MapScreen> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: MapsCubit.get(context)
+                                          text: MapsCubit
+                                              .get(context)
                                               .suggestions[index]
                                               .description
                                               .replaceAll(
-                                                  MapsCubit.get(context)
-                                                      .suggestions[index]
-                                                      .description
-                                                      .split(',')[0],
-                                                  '')
+                                              MapsCubit
+                                                  .get(context)
+                                                  .suggestions[index]
+                                                  .description
+                                                  .split(',')[0],
+                                              '')
                                               .substring(2),
                                           style: TextStyle(
                                             color: MyColors.myBlack,
@@ -248,6 +284,7 @@ class _MapScreenState extends State<MapScreen> {
                         },
                       ),
                     buildSelectedPlaceLocationBloc(),
+                    buildDirectionBloC(),
                   ],
                 ),
               ),
@@ -277,6 +314,16 @@ class _MapScreenState extends State<MapScreen> {
       onMapCreated: (GoogleMapController controller) {
         _mapController.complete(controller);
       },
+      polylines: placeDirections != null
+          ? {
+        Polyline(
+          polylineId: const PolylineId('my_polyline'),
+          color: MyColors.myBlack,
+          width: 2,
+          points: polylinePoints!,
+        )
+      }
+          : {},
     );
   }
 
@@ -308,16 +355,22 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget buildPlacesList() {
     return ListView.builder(
-      itemCount: MapsCubit.get(context).suggestions.length,
+      itemCount: MapsCubit
+          .get(context)
+          .suggestions
+          .length,
       shrinkWrap: true,
       physics: ClampingScrollPhysics(),
       itemBuilder: (context, index) {
         InkWell(
           onTap: () {
             _floatingSearchBarController.close();
+            getSelectedPlacedLocation();
           },
           child:
-              PlaceItem(suggestions: MapsCubit.get(context).suggestions[index]),
+          PlaceItem(suggestions: MapsCubit
+              .get(context)
+              .suggestions[index]),
         );
       },
     );
@@ -335,6 +388,17 @@ class _MapScreenState extends State<MapScreen> {
         if (state is PlacesLocationLoadedSuccess) {
           selectedPlace = state.place;
           goToMySearchedForLocation();
+          MapsCubit.get(context).getPlaceDirections(
+            origin: LatLng(
+              position!.latitude,
+              position!.longitude,
+            ),
+            destination: LatLng(
+              selectedPlace.result!.geometry!.location!.lat!,
+              selectedPlace.result!.geometry!.location!.lng!,
+            ),
+          );
+
         }
       },
       child: Container(),
@@ -355,6 +419,10 @@ class _MapScreenState extends State<MapScreen> {
       position: goToSearchedForPlace.target,
       onTap: () {
         buildCurrentLocationMarker();
+        setState(() {
+          isSearchedPlaceMarkerClicked = true;
+          isTimeAndDistanceVisible = true;
+        });
       },
       infoWindow: InfoWindow(
         title: '${placeSuggestion.description}',
@@ -380,5 +448,27 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       markers.add(marker);
     });
+  }
+
+  Widget buildDirectionBloC() {
+    return BlocListener<MapsCubit, MapsState>(
+      listener: (context, state) {
+        if (state is GetPlacesDirectionsSuccess) {
+          placeDirections = state.readyDirection;
+          getPolyLinePoints();
+        }
+      },
+      child: Container(),
+    );
+  }
+
+  void getPolyLinePoints() {
+    polylinePoints = placeDirections!.polyLinePoints
+        .map((e) =>
+        LatLng(
+          e.latitude,
+          e.longitude,
+        ))
+        .toList();
   }
 }
