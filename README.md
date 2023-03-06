@@ -5,7 +5,7 @@ A Flutter UI implementation of a Flutter-google-maps-app
 Star this repo if you like what you see.
 
 
-*Packages I used in my project:**
+**Packages I used in my project:**
 
 - <a href="https://pub.dev/packages/flutter_bloc">flutter_bloc</a>
 - <a href="https://pub.dev/packages/dio">dio</a>
