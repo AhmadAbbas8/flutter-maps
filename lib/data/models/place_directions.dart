@@ -30,7 +30,6 @@ class PlaceDirections {
         southwest['lat'],
         southwest['lng'],
       ),
-
     );
     late String distance;
     late String duration;

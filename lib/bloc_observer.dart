@@ -1,7 +1,10 @@
+// ignore_for_file: avoid_print, depend_on_referenced_packages, duplicate_ignore
+
 import 'package:bloc/bloc.dart';
+
 class MyBlocObserver extends BlocObserver {
   @override
-  void onCreate(BlocBase bloc)  {
+  void onCreate(BlocBase bloc) {
     super.onCreate(bloc);
     print('onCreate -- ${bloc.runtimeType}');
   }
@@ -23,5 +26,4 @@ class MyBlocObserver extends BlocObserver {
     super.onClose(bloc);
     print('onClose -- ${bloc.runtimeType}');
   }
-
 }

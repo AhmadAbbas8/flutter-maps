@@ -6,7 +6,6 @@ class LocationHelper {
     LocationPermission permission;
     permission = await Geolocator.checkPermission();
     isServiceEnabled = await Geolocator.isLocationServiceEnabled();
-
     permission = await Geolocator.checkPermission();
     if (!isServiceEnabled) {
       await Geolocator.requestPermission();

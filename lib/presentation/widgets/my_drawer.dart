@@ -20,6 +20,7 @@ class MyDrawer extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
+            // ignore: sized_box_for_whitespace
             Container(
               height: 320,
               child: DrawerHeader(
@@ -60,19 +61,20 @@ class MyDrawer extends StatelessWidget {
                   title: 'logout',
                   onTap: () async {
                     await PhoneAuthCubit.get(context).logOut();
+                    // ignore: use_build_context_synchronously
                     if (!context.mounted) return;
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
                         builder: (context) => LoginScreen(),
                       ),
-                          (route) => false,
+                      (route) => false,
                     );
                   },
                 );
               },
             ),
-            SizedBox(height: 50),
+            const SizedBox(height: 50),
             ListTile(
               leading: Text(
                 'Follow us',
@@ -93,7 +95,7 @@ class MyDrawer extends StatelessWidget {
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.fromLTRB(70, 10, 70, 10),
+          padding: const EdgeInsets.fromLTRB(70, 10, 70, 10),
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             // borderRadius: BorderRadius.circular(100),
@@ -107,23 +109,22 @@ class MyDrawer extends StatelessWidget {
             ),
           ),
         ),
-        Text(
+        const Text(
           'Ahmad Abbas',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         BlocBuilder<PhoneAuthCubit, PhoneAuthState>(
           builder: (context, state) {
             return Text(
               PhoneAuthCubit.get(context).getLoggedInUser().phoneNumber!,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             );
           },
         ),
-
       ],
     );
   }
@@ -141,7 +142,7 @@ class MyDrawer extends StatelessWidget {
         color: color ?? MyColors.myBlue,
       ),
       trailing: trailing ??
-          Icon(
+          const Icon(
             Icons.arrow_right,
             color: MyColors.myBlue,
           ),
@@ -179,18 +180,18 @@ class MyDrawer extends StatelessWidget {
 
   Widget buildSocialMediaIcons() {
     return Padding(
-      padding: EdgeInsetsDirectional.only(start: 16),
+      padding: const EdgeInsetsDirectional.only(start: 16),
       child: Row(
         children: [
           buildIcon(FontAwesomeIcons.facebook,
               'https://www.facebook.com/AhmadAbbas08', null),
-          SizedBox(width: 15),
+          const SizedBox(width: 15),
           buildIcon(
             FontAwesomeIcons.linkedin,
             'https://www.linkedin.com/in/ahmadabbas8/',
             null,
           ),
-          SizedBox(width: 15),
+          const SizedBox(width: 15),
           buildIcon(
             FontAwesomeIcons.github,
             'https://github.com/AhmadAbbas8',

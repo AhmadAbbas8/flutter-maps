@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
-import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
 import 'package:flutter_maps/presentation/screens/map_screen.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 import '../../business_logic/phone_auth/phone_auth_state.dart';
 
+// ignore: must_be_immutable
 class OtpScreen extends StatelessWidget {
   OtpScreen({Key? key, this.phoneNumber}) : super(key: key);
   final String? phoneNumber;
@@ -25,7 +25,7 @@ class OtpScreen extends StatelessWidget {
             Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(),
+                  builder: (context) => const MapScreen(),
                 ),
                 (route) => false);
           }
@@ -37,7 +37,7 @@ class OtpScreen extends StatelessWidget {
                   state.error,
                 ),
                 backgroundColor: Colors.black,
-                duration: Duration(seconds: 3),
+                duration: const Duration(seconds: 3),
               ),
             );
           }
@@ -67,15 +67,15 @@ class OtpScreen extends StatelessWidget {
                       child: RichText(
                         text: TextSpan(
                           text: 'Enter your 6 digits code number sent to ',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: MyColors.myBlack,
                             fontSize: 16,
                             height: 1.4,
                           ),
                           children: [
                             TextSpan(
-                              text: '${phoneNumber}',
-                              style: TextStyle(
+                              text: '$phoneNumber',
+                              style: const TextStyle(
                                 color: MyColors.myBlue,
                               ),
                             )
@@ -119,46 +119,40 @@ class OtpScreen extends StatelessWidget {
     );
   }
   Widget _buildPinCodeFields(BuildContext context) {
-    return Container(
-      child: PinCodeTextField(
-        appContext: context,
-        autoFocus: true,
-        cursorColor: MyColors.myBlack,
-        keyboardType: TextInputType.number,
-        length: 6,
-        obscureText: false,
-        animationType: AnimationType.scale,
-        pinTheme: PinTheme(
-          shape: PinCodeFieldShape.box,
-          borderRadius: BorderRadius.circular(5),
-          fieldHeight: 50,
-          fieldWidth: 40,
-          activeFillColor: MyColors.myLightBlue,
-          borderWidth: 1,
-          activeColor: MyColors.myBlue,
-          inactiveColor: MyColors.myBlue,
-          inactiveFillColor: MyColors.myWhite,
-          selectedColor: MyColors.myBlue,
-          selectedFillColor: MyColors.myWhite,
-        ),
-        animationDuration: Duration(milliseconds: 300),
-        backgroundColor: MyColors.myWhite,
-        enableActiveFill: true,
-        // errorAnimationController: errorController,
-        // controller: textEditingController,
-        onCompleted: (code) {
-          otpCode = code;
-          print("Completed");
-        },
-        onChanged: (value) {
-          print(value);
-        },
+    return PinCodeTextField(
+      appContext: context,
+      autoFocus: true,
+      cursorColor: MyColors.myBlack,
+      keyboardType: TextInputType.number,
+      length: 6,
+      obscureText: false,
+      animationType: AnimationType.scale,
+      pinTheme: PinTheme(
+        shape: PinCodeFieldShape.box,
+        borderRadius: BorderRadius.circular(5),
+        fieldHeight: 50,
+        fieldWidth: 40,
+        activeFillColor: MyColors.myLightBlue,
+        borderWidth: 1,
+        activeColor: MyColors.myBlue,
+        inactiveColor: MyColors.myBlue,
+        inactiveFillColor: MyColors.myWhite,
+        selectedColor: MyColors.myBlue,
+        selectedFillColor: MyColors.myWhite,
       ),
+      animationDuration: const Duration(milliseconds: 300),
+      backgroundColor: MyColors.myWhite,
+      enableActiveFill: true,
+      onCompleted: (code) {
+        otpCode = code;
+      },
+      onChanged: (value) {
+      },
     );
   }
 
   void showProgresIndicator(BuildContext context) {
-    AlertDialog alertDialog = AlertDialog(
+    AlertDialog alertDialog = const AlertDialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       content: Center(

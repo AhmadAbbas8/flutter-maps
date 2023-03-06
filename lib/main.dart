@@ -23,7 +23,7 @@ void choseFirstPage() {
     if (event == null) {
       initalScreen = LoginScreen();
     } else {
-      initalScreen = MapScreen();
+      initalScreen = const MapScreen();
     }
   });
 }

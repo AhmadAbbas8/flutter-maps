@@ -4,16 +4,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class PlacesWebServices {
   static late Dio dio;
-
-//https://maps.googleapis.com/maps/api/place/
-  //https://maps.googleapis.com/maps/api/directions/json
   static init() {
     dio = Dio(
       BaseOptions(
-        baseUrl: 'https://maps.googleapis.com/maps/api/',
+        baseUrl: baseUrl,
         receiveDataWhenStatusError: true,
-        connectTimeout: Duration(seconds: 10),
-        receiveTimeout: Duration(seconds: 10),
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
       ),
     );
   }
@@ -23,7 +20,7 @@ class PlacesWebServices {
     required String sessiontoken,
   }) async {
     Response res = await dio.get(
-      'place/autocomplete/json',
+      suggestionAautocompleteEndPoint,
       queryParameters: {
         'input': place,
         'type': 'address',
@@ -40,7 +37,7 @@ class PlacesWebServices {
     required String sessiontoken,
   }) async {
     Response res = await dio.get(
-      'place/details/json',
+      placesLocationDetailsEndPoint,
       queryParameters: {
         'place_id': placeId,
         'fields': 'geometry',
@@ -58,7 +55,7 @@ class PlacesWebServices {
     required LatLng destination,
   }) async {
     Response res = await dio.get(
-      'directions/json',
+      directionsEndPoint,
       queryParameters: {
         'origin': '${origin.latitude},${origin.longitude}',
         'destination': '${destination.latitude},${destination.longitude}',

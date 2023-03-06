@@ -5,6 +5,7 @@ import 'package:flutter_maps/business_logic/phone_auth/phone_auth_state.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
 import 'package:flutter_maps/presentation/screens/otp_screen.dart';
 
+// ignore: must_be_immutable
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
   String? phoneNumber;
@@ -34,7 +35,7 @@ class LoginScreen extends StatelessWidget {
                   state.error,
                 ),
                 backgroundColor: Colors.black,
-                duration: Duration(seconds: 3),
+                duration: const Duration(seconds: 3),
               ),
             );
           }
@@ -119,7 +120,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   void showProgresIndicator(BuildContext context) {
-    AlertDialog alertDialog = AlertDialog(
+    AlertDialog alertDialog = const AlertDialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       content: Center(

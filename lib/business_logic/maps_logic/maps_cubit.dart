@@ -1,10 +1,10 @@
-import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps/data/models/place_directions.dart';
 import 'package:flutter_maps/data/models/place_model.dart';
 import 'package:flutter_maps/data/models/place_suggestions%20_model.dart';
 import 'package:flutter_maps/data/web_services/places_web_servises.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:meta/meta.dart';
 
 part 'maps_state.dart';
@@ -13,7 +13,6 @@ class MapsCubit extends Cubit<MapsState> {
   MapsCubit() : super(MapsInitial());
   List<PlaceSuggestionsModel> suggestions = [];
   late Place place;
-  // PlaceDirections? readyDirection;
 
   static MapsCubit get(context) => BlocProvider.of(context);
 
@@ -24,10 +23,8 @@ class MapsCubit extends Cubit<MapsState> {
         .then((value) {
       suggestions =
           value.map((e) => PlaceSuggestionsModel.fromJson(e)).toList();
-      // print('###########################################${suggestions[0].description}');
       emit(PlacesLoadedSuccess(suggestions));
     }).catchError((onError) {
-      //  print(onError.toString());
       emit(PlacesLoadedError(onError.toString()));
     });
   }
@@ -42,13 +39,8 @@ class MapsCubit extends Cubit<MapsState> {
       sessiontoken: sessiontoken,
     ).then((value) {
       place = Place.fromJson(value);
-      print(
-          '###########################################${place.result!.geometry!.location!.lat!}');
       emit(PlacesLocationLoadedSuccess(place));
     }).catchError((onError) {
-      print(onError.toString());
-      print(
-          '*****************************************************${onError.toString()}');
       emit(PlacesLocationLoadedError(onError.toString()));
     });
   }
@@ -62,12 +54,10 @@ class MapsCubit extends Cubit<MapsState> {
       origin: origin,
       destination: destination,
     ).then((value) {
-      print('vaaaaaaaaaaaaaaaaaaallllllllllllluuuuuuuuue${value}');
+
     final  readyDirection = PlaceDirections.fromJson(value);
       emit(GetPlacesDirectionsSuccess(readyDirection));
     }).catchError((onError) {
-      print(
-          'errrrrrrrrrrrrrrrrrooooooooooooooooooooorrrrrrrrr${onError.toString()}');
       emit(GetPlacesDirectionsError(onError.toString()));
     });
   }

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
 import 'package:flutter_maps/data/models/place_directions.dart';
@@ -9,6 +8,7 @@ class DistanceAndTime extends StatelessWidget {
       : super(key: key);
   final PlaceDirections? placeDirections;
 
+  // ignore: prefer_typing_uninitialized_variables
   final isTimeAndDistanceVisiable;
 
   @override
@@ -29,19 +29,19 @@ class DistanceAndTime extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                margin: EdgeInsets.fromLTRB(20, 50, 20, 0),
+                margin: const EdgeInsets.fromLTRB(20, 50, 20, 0),
                 color: MyColors.myWhite,
                 child: ListTile(
                   dense: true,
                   horizontalTitleGap: 0,
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.access_time_filled,
                     color: MyColors.myBlue,
                     size: 30,
                   ),
                   title: Text(
                     placeDirections!.totalDuration,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: MyColors.myBlack,
                       fontSize: 16,
                       overflow: TextOverflow.ellipsis,
@@ -59,19 +59,19 @@ class DistanceAndTime extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                margin: EdgeInsets.fromLTRB(20, 50, 20, 0),
+                margin: const EdgeInsets.fromLTRB(20, 50, 20, 0),
                 color: MyColors.myWhite,
                 child: ListTile(
                   dense: true,
                   horizontalTitleGap: 0,
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.directions_car_filled,
                     color: MyColors.myBlue,
                     size: 30,
                   ),
                   title: Text(
                     placeDirections!.totalDistance,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: MyColors.myBlack,
                       fontSize: 16,
                       overflow: TextOverflow.ellipsis,
