@@ -38,8 +38,6 @@ dependencies:
   flutter_bloc: ^8.1.2
   conditional_builder_null_safety: ^0.0.6
   dio: ^5.0.0
-  sqflite: ^2.2.4+1
-  flutter_spinkit: ^5.1.0
   firebase_core: ^2.6.1
   firebase_auth: ^4.2.8
   pin_code_fields: ^7.4.0
