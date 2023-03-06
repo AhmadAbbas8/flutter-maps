@@ -15,3 +15,16 @@ class PlacesLoadedError extends MapsState{
 
   PlacesLoadedError(this.error);
 }
+
+
+class PlacesLocationLoading extends MapsState{}
+class PlacesLocationLoadedSuccess extends MapsState{
+ final Place place ;
+
+  PlacesLocationLoadedSuccess(this.place);
+}
+class PlacesLocationLoadedError extends MapsState{
+  final String error;
+
+  PlacesLocationLoadedError(this.error);
+}

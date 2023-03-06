@@ -2,9 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps/business_logic/maps_logic/maps_cubit.dart';
-import 'package:flutter_maps/business_logic/phone_auth/phone_auth_cubit.dart';
-import 'package:flutter_maps/business_logic/phone_auth/phone_auth_state.dart';
 import 'package:flutter_maps/constants/my_colors.dart';
+import 'package:flutter_maps/data/models/place_model.dart';
 import 'package:flutter_maps/data/models/place_suggestions%20_model.dart';
 import 'package:flutter_maps/helper/location_helper.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
@@ -37,6 +36,25 @@ class _MapScreenState extends State<MapScreen> {
   );
   Completer<GoogleMapController> _mapController = Completer();
 
+  Set<Marker> markers = Set();
+  late PlaceSuggestionsModel placeSuggestion;
+  late Place selectedPlace;
+  late Marker searchedPlaceMarker;
+  late Marker currentLocationMarker;
+  late CameraPosition goToSearchedForPlace;
+
+  void buildCameraNewPosition() {
+    goToSearchedForPlace = CameraPosition(
+      bearing: 0.0,
+      tilt: 0.0,
+      target: LatLng(
+        selectedPlace.result!.geometry!.location!.lat!,
+        selectedPlace.result!.geometry!.location!.lng!,
+      ),
+      zoom: 13,
+    );
+  }
+
   Future<void> getCurrentLocation() async {
     position = await LocationHelper.getCurrentLocation().whenComplete(() {
       setState(() {});
@@ -60,23 +78,25 @@ class _MapScreenState extends State<MapScreen> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            title: Text('Map'),
-          ),
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              ConditionalBuilder(
-                condition: position != null,
-                builder: (context) => buildMap(),
-                fallback: (context) => const Center(
-                  child: CircularProgressIndicator(
-                    color: MyColors.myBlue,
+          // appBar: AppBar(
+          //   title: Text('Map'),
+          // ),
+          body: SafeArea(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ConditionalBuilder(
+                  condition: position != null,
+                  builder: (context) => buildMap(),
+                  fallback: (context) => const Center(
+                    child: CircularProgressIndicator(
+                      color: MyColors.myBlue,
+                    ),
                   ),
                 ),
-              ),
-              buildFloatingSearchBar(),
-            ],
+                buildFloatingSearchBar(),
+              ],
+            ),
           ),
           floatingActionButton: Container(
             margin: EdgeInsets.fromLTRB(0, 0, 8, 30),
@@ -146,75 +166,90 @@ class _MapScreenState extends State<MapScreen> {
               child: Material(
                 color: Colors.white,
                 elevation: 4.0,
-                child: state is PlacesLoading
-                    ? Container(
+                child: Column(
+                  children: [
+                    if (state is PlacesLoading)
+                      Container(
                         height: 100,
                         child: Center(
                           child: CircularProgressIndicator(),
                         ),
                       )
-                    : ListView.builder(
+                    else
+                      ListView.builder(
                         itemCount: MapsCubit.get(context).suggestions.length,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
-                          return Container(
-                            width: double.infinity,
-                            margin: EdgeInsetsDirectional.all(8),
-                            padding: EdgeInsetsDirectional.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              children: [
-                                ListTile(
-                                  leading: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: MyColors.myLightBlue,
+                          return InkWell(
+                            onTap: () async {
+                              placeSuggestion =
+                                  MapsCubit.get(context).suggestions[index];
+                              _floatingSearchBarController.close();
+                              getSelectedPlacedLocation();
+                              // TODO
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              margin: EdgeInsetsDirectional.all(8),
+                              padding: EdgeInsetsDirectional.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    leading: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: MyColors.myLightBlue,
+                                      ),
+                                      child: Icon(
+                                        Icons.place,
+                                        color: MyColors.myBlue,
+                                      ),
                                     ),
-                                    child: Icon(
-                                      Icons.place,
-                                      color: MyColors.myBlue,
+                                    title: RichText(
+                                      text: TextSpan(children: [
+                                        TextSpan(
+                                          text:
+                                              '${MapsCubit.get(context).suggestions[index].description.split(',')[0]}\n',
+                                          style: TextStyle(
+                                            color: MyColors.myBlack,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: MapsCubit.get(context)
+                                              .suggestions[index]
+                                              .description
+                                              .replaceAll(
+                                                  MapsCubit.get(context)
+                                                      .suggestions[index]
+                                                      .description
+                                                      .split(',')[0],
+                                                  '')
+                                              .substring(2),
+                                          style: TextStyle(
+                                            color: MyColors.myBlack,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ]),
                                     ),
                                   ),
-                                  title: RichText(
-                                    text: TextSpan(children: [
-                                      TextSpan(
-                                        text:
-                                            '${MapsCubit.get(context).suggestions[index].description.split(',')[0]}\n',
-                                        style: TextStyle(
-                                          color: MyColors.myBlack,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: MapsCubit.get(context)
-                                            .suggestions[index]
-                                            .description
-                                            .replaceAll(
-                                                MapsCubit.get(context)
-                                                    .suggestions[index]
-                                                    .description
-                                                    .split(',')[0],
-                                                '')
-                                            .substring(2),
-                                        style: TextStyle(
-                                          color: MyColors.myBlack,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ]),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },
                       ),
+                    buildSelectedPlaceLocationBloc(),
+                  ],
+                ),
               ),
             );
           },
@@ -223,8 +258,17 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  void getSelectedPlacedLocation() {
+    final sessiontoken = Uuid().v4();
+    MapsCubit.get(context).getPlaceLocation(
+      placeId: placeSuggestion.placeId,
+      sessiontoken: sessiontoken,
+    );
+  }
+
   Widget buildMap() {
     return GoogleMap(
+      markers: markers,
       mapType: MapType.normal,
       myLocationButtonEnabled: true,
       zoomControlsEnabled: false,
@@ -283,5 +327,58 @@ class _MapScreenState extends State<MapScreen> {
     final sessiontoken = Uuid().v4();
     MapsCubit.get(context)
         .getSuggestionsCubit(place: query, sessiontoken: sessiontoken);
+  }
+
+  Widget buildSelectedPlaceLocationBloc() {
+    return BlocListener<MapsCubit, MapsState>(
+      listener: (context, state) {
+        if (state is PlacesLocationLoadedSuccess) {
+          selectedPlace = state.place;
+          goToMySearchedForLocation();
+        }
+      },
+      child: Container(),
+    );
+  }
+
+  Future<void> goToMySearchedForLocation() async {
+    buildCameraNewPosition();
+    final GoogleMapController googleMapController = await _mapController.future;
+    googleMapController
+        .animateCamera(CameraUpdate.newCameraPosition(goToSearchedForPlace));
+    buildSearchedPlaceMarker();
+  }
+
+  void buildSearchedPlaceMarker() {
+    searchedPlaceMarker = Marker(
+      markerId: MarkerId('2'),
+      position: goToSearchedForPlace.target,
+      onTap: () {
+        buildCurrentLocationMarker();
+      },
+      infoWindow: InfoWindow(
+        title: '${placeSuggestion.description}',
+      ),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+    );
+    addMarkerToMarkersAndUpdateUI(searchedPlaceMarker);
+  }
+
+  void buildCurrentLocationMarker() {
+    currentLocationMarker = Marker(
+      markerId: MarkerId('1'),
+      position: LatLng(position!.latitude, position!.longitude),
+      infoWindow: const InfoWindow(
+        title: 'your Current Location',
+      ),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+    );
+    addMarkerToMarkersAndUpdateUI(currentLocationMarker);
+  }
+
+  void addMarkerToMarkersAndUpdateUI(Marker marker) {
+    setState(() {
+      markers.add(marker);
+    });
   }
 }
